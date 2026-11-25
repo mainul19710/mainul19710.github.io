@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -16,18 +16,17 @@
     --link: var(--tg-theme-link-color, #38bdf8);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Hind Siliguri',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px}
-  header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid rgba(148,163,184,.15)}
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding-bottom:84px}
+  header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid rgba(148,163,184,.15)}
   header h1{font-size:20px}
   header p{color:var(--hint);font-size:13px;margin-top:2px}
   .search{margin-top:10px;display:flex;gap:8px}
   .search input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:var(--surface);color:var(--text);font-size:15px}
   .search button{padding:10px 14px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-text);font-size:15px;cursor:pointer}
-  .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
-  .chips::-webkit-scrollbar{display:none}
-  .chip{white-space:nowrap;padding:7px 13px;border-radius:999px;background:var(--surface);color:var(--text);border:1px solid rgba(148,163,184,.25);font-size:14px;cursor:pointer}
-  .chip.active{background:var(--accent);color:var(--accent-text);border-color:transparent}
-  main{padding:12px 16px}
+  main{padding:14px 16px}
+  .view{display:none}
+  .view.active{display:block}
+  .view h2.section{font-size:17px;margin:2px 0 12px}
   .grid{display:grid;grid-template-columns:1fr;gap:14px}
   @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
   .card{background:var(--surface);border-radius:14px;overflow:hidden;cursor:pointer}
@@ -41,9 +40,27 @@
   .error button{margin-top:10px;padding:9px 18px;border:0;border-radius:9px;background:var(--accent);color:var(--accent-text);cursor:pointer}
   .skeleton{height:250px;border-radius:14px;background:linear-gradient(100deg,var(--surface) 40%,rgba(148,163,184,.25) 50%,var(--surface) 60%);background-size:200% 100%;animation:sh 1.2s infinite}
   @keyframes sh{to{background-position:-200% 0}}
+  /* Explore */
+  .catlist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .catcard{background:var(--surface);border:1px solid rgba(148,163,184,.18);border-radius:12px;padding:14px 12px;cursor:pointer}
+  .catcard .n{font-size:15px;font-weight:600}
+  .catcard .c{color:var(--hint);font-size:12px;margin-top:4px}
+  /* Profile */
+  .profile-card{background:var(--surface);border-radius:14px;padding:18px;text-align:center}
+  .profile-card img{width:76px;height:76px;border-radius:50%;object-fit:cover;background:#334155}
+  .avatar-fallback{width:76px;height:76px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto}
+  .profile-card h3{margin-top:10px;font-size:17px}
+  .profile-card p{color:var(--hint);font-size:13px;margin-top:3px}
+  .stat-row{display:flex;gap:10px;margin-top:12px}
+  .stat{flex:1;background:var(--surface);border-radius:12px;padding:12px;text-align:center}
+  .stat .v{font-size:18px;font-weight:700}
+  .stat .k{color:var(--hint);font-size:12px;margin-top:2px}
+  .linkrow{display:block;background:var(--surface);border-radius:12px;padding:14px;margin-top:10px;color:var(--text);text-decoration:none;font-size:15px}
+  .linkrow small{display:block;color:var(--hint);font-size:12px;margin-top:3px}
+  /* Bottom navigation */
   nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--surface);border-top:1px solid rgba(148,163,184,.2);padding-bottom:env(safe-area-inset-bottom)}
-  nav button{flex:1;background:none;border:0;color:var(--hint);padding:10px 0 8px;font-size:13px;cursor:pointer}
-  nav button span{display:block;font-size:20px;margin-bottom:2px}
+  nav button{flex:1;background:none;border:0;color:var(--hint);padding:9px 0 7px;font-size:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   nav button.active{color:var(--accent)}
   /* Reader */
   #reader{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;display:none}
@@ -59,45 +76,89 @@
   #reader .content p{margin:0 0 14px}
   #reader .content h2,#reader .content h3{margin:18px 0 8px;line-height:1.4}
   #reader .content a{color:var(--link)}
-  .orig{display:inline-block;margin:18px 0 30px;color:var(--link)}
+  .fadewrap{position:relative}
+  .fadewrap:after{content:'';position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(to bottom,transparent,var(--bg))}
+  .cta{margin:6px 0 34px;text-align:center;background:var(--surface);border:1px solid rgba(148,163,184,.2);border-radius:14px;padding:18px 14px}
+  .cta p{font-size:15px;margin-bottom:12px}
+  .cta a{display:inline-block;background:var(--accent);color:var(--accent-text);text-decoration:none;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600}
   .hidden{display:none!important}
 </style>
 </head>
 <body>
 <header>
   <h1>🔬 KBKh Science</h1>
-  <p>কি...বিজ্ঞান খুঁজছেন? — সর্বশেষ বিজ্ঞান আর্টিকেল পড়ুন</p>
-  <div class="search">
-    <input id="q" type="search" placeholder="আর্টিকেল খুঁজুন… যেমন: মহাকাশ" enterkeyhint="search">
-    <button id="searchBtn">খুঁজুন</button>
+  <p>Discover the latest science stories</p>
+  <div class="search" id="searchBox">
+    <input id="q" type="search" placeholder="Search articles… e.g. Space" enterkeyhint="search">
+    <button id="searchBtn">Search</button>
   </div>
 </header>
 
-<div class="chips" id="chips"><button class="chip active" data-cat="">সব</button></div>
-
 <main>
-  <div class="grid" id="grid"></div>
-  <div id="status"></div>
-  <button class="loadmore hidden" id="moreBtn">আরও দেখুন</button>
+  <section class="view active" id="view-home">
+    <div class="grid" id="grid"></div>
+    <div id="status"></div>
+    <button class="loadmore hidden" id="moreBtn">Load More</button>
+  </section>
+
+  <section class="view" id="view-explore">
+    <h2 class="section">Explore Topics</h2>
+    <div class="catlist" id="catlist"></div>
+    <div id="catStatus"></div>
+  </section>
+
+  <section class="view" id="view-saved">
+    <h2 class="section">Saved Articles</h2>
+    <div class="grid" id="savedGrid"></div>
+    <div id="savedStatus"></div>
+  </section>
+
+  <section class="view" id="view-profile">
+    <h2 class="section">Profile</h2>
+    <div class="profile-card" id="profileCard"></div>
+    <div class="stat-row">
+      <div class="stat"><div class="v" id="statSaved">0</div><div class="k">Saved Articles</div></div>
+      <div class="stat"><div class="v" id="statTopics">–</div><div class="k">Topics</div></div>
+    </div>
+    <a class="linkrow" href="https://kbkhscience.com.bd" target="_blank" rel="noopener">🌐 KBKh Science Website<small>kbkhscience.com.bd</small></a>
+    <a class="linkrow" href="https://t.me/kbkhscienceweb_bot" target="_blank" rel="noopener">🤖 KBKh Science Bot<small>@kbkhscienceweb_bot</small></a>
+    <a class="linkrow" href="https://www.facebook.com/groups/777602136864885" target="_blank" rel="noopener">👥 KBKh Facebook Group<small>কি...বিজ্ঞান খুঁজছেন?</small></a>
+  </section>
 </main>
 
 <nav>
-  <button id="navHome" class="active"><span>🏠</span>হোম</button>
-  <button id="navExplore"><span>🧭</span>এক্সপ্লোর</button>
-  <button id="navSaved"><span>🔖</span>সেভ করা</button>
+  <button id="nav-home" class="active">
+    <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+    Home
+  </button>
+  <button id="nav-explore">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>
+    Explore
+  </button>
+  <button id="nav-saved">
+    <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+    Saved
+  </button>
+  <button id="nav-profile">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-5.5 8-5.5s6.5 1.5 8 5.5"/></svg>
+    Profile
+  </button>
 </nav>
 
 <section id="reader">
   <div class="bar">
-    <button id="backBtn">← ফিরুন</button>
-    <button class="save" id="saveBtn">🔖 সেভ</button>
+    <button id="backBtn">← Back</button>
+    <button class="save" id="saveBtn">🔖 Save</button>
   </div>
   <article>
     <h2 id="rTitle"></h2>
     <div class="meta" id="rMeta"></div>
     <img class="cover" id="rCover" alt="">
-    <div class="content" id="rContent"></div>
-    <a class="orig" id="rOrig" target="_blank" rel="noopener">🌐 মূল ওয়েবসাইটে পড়ুন</a>
+    <div class="fadewrap"><div class="content" id="rContent"></div></div>
+    <div class="cta">
+      <p>Enjoying this article? Read the full story on our website.</p>
+      <a id="rOrig" href="#" target="_blank" rel="noopener">Continue Reading on Website →</a>
+    </div>
   </article>
 </section>
 
@@ -106,13 +167,23 @@ const API = 'https://kbkhscience.com.bd/wp-json/wp/v2';
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
 
+/* Bengali category names from the website, shown in English in the app */
+const CAT_EN = {
+  'মহাকাশ':'Space','পদার্থবিজ্ঞান':'Physics','জীববিজ্ঞান':'Biology','রসায়ন':'Chemistry',
+  'সাইকোলজি':'Psychology','স্বাস্থ্য ও চিকিৎসা':'Health & Medicine','টেকনোলজি':'Technology',
+  'গণিত':'Mathematics','ইতিহাস':'History','প্রকৃতি':'Nature','বিবর্তন':'Evolution',
+  'কৃত্তিম বুদ্ধিমত্তা':'Artificial Intelligence','এক্সপ্লেইনার':'Explainer','অন্যান্য':'Others',
+  'মিথ বনাম ফ্যাক্ট':'Myth vs Fact','বিজ্ঞান ডায়েরি':'Science Diary','বায়োগ্রাফি':'Biography',
+  'প্রত্নতত্ত্ব':'Archaeology','Live':'Live'
+};
+const catName = n => CAT_EN[n] || n;
+
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
 const moreBtn = document.getElementById('moreBtn');
-const chipsEl = document.getElementById('chips');
 
-let page = 1, totalPages = 1, currentCat = '', currentSearch = '', view = 'home';
-let currentPost = null;
+let page = 1, totalPages = 1, currentCat = '', currentSearch = '';
+let currentPost = null, topicCount = 0;
 
 const saved = () => { try { return JSON.parse(localStorage.getItem('kbkh_saved') || '[]'); } catch(e){ return []; } };
 const isSaved = id => saved().some(p => p.id === id);
@@ -127,15 +198,29 @@ function strip(html){ const d = document.createElement('div'); d.innerHTML = htm
 function clean(html){
   const d = document.createElement('div'); d.innerHTML = html || '';
   d.querySelectorAll('script,style,iframe[src*="ads"],ins').forEach(el => el.remove());
+  return d;
+}
+/* Keep only the opening of the article (first ~5 blocks or ~1400 chars of
+   text) so readers continue on the website for the full story. */
+function teaser(html){
+  const d = clean(html);
+  const blocks = Array.from(d.children);
+  let chars = 0, keep = 0;
+  for (const b of blocks){
+    if (keep >= 2 && (chars > 1400 || keep >= 5)) break;
+    chars += b.textContent.trim().length; keep++;
+    if (keep >= 5) break;
+  }
+  blocks.slice(keep).forEach(el => el.remove());
   return d.innerHTML;
 }
 function fmtDate(iso){
-  try { return new Date(iso).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'}); } catch(e){ return ''; }
+  try { return new Date(iso).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}); } catch(e){ return ''; }
 }
 function mapPost(p){
   const emb = p._embedded || {};
   const fm = (emb['wp:featuredmedia'] || [])[0];
-  const terms = ((emb['wp:term'] || [])[0] || []).map(t => t.name);
+  const terms = ((emb['wp:term'] || [])[0] || []).map(t => catName(t.name));
   return {
     id: p.id, raw: p,
     title: strip(p.title && p.title.rendered),
@@ -146,18 +231,18 @@ function mapPost(p){
   };
 }
 
-function card(post){
+function card(post, targetGrid){
   const el = document.createElement('div');
   el.className = 'card';
   el.innerHTML = (post.img ? `<img loading="lazy" src="${post.img}" alt="">` : '') +
     `<div class="body"><h3></h3><div class="meta"><span>${fmtDate(post.date)}</span>` +
     (post.cats && post.cats.length ? `<span>• ${post.cats.join(', ')}</span>` : '') +
-    (isSaved(post.id) ? '<span>🔖 সেভ করা</span>' : '') +
+    (isSaved(post.id) ? '<span>🔖 Saved</span>' : '') +
     `</div><p class="excerpt"></p></div>`;
   el.querySelector('h3').textContent = post.title;
   el.querySelector('.excerpt').textContent = post.excerpt || '';
   el.onclick = () => openPost(post);
-  return el;
+  (targetGrid || grid).appendChild(el);
 }
 
 function skeletons(n){
@@ -177,35 +262,38 @@ async function loadPosts(reset){
     totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1', 10);
     const posts = (await res.json()).map(mapPost);
     if (reset) grid.innerHTML = '';
-    if (!posts.length && reset){ statusEl.innerHTML = '<div class="empty">কোনো আর্টিকেল পাওয়া যায়নি।</div>'; return; }
-    posts.forEach(p => grid.appendChild(card(p)));
+    if (!posts.length && reset){ statusEl.innerHTML = '<div class="empty">No articles found.</div>'; return; }
+    posts.forEach(p => card(p));
     if (page < totalPages) moreBtn.classList.remove('hidden');
   } catch(e){
     if (reset) grid.innerHTML = '';
-    statusEl.innerHTML = '<div class="error">আর্টিকেল লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।<br><button onclick="loadPosts(true)">আবার চেষ্টা</button></div>';
+    statusEl.innerHTML = '<div class="error">Could not load articles. Please check your connection and try again.<br><button onclick="loadPosts(true)">Try Again</button></div>';
   }
 }
 
 async function loadCategories(){
+  const list = document.getElementById('catlist');
+  const cs = document.getElementById('catStatus');
   try {
     const res = await fetch(`${API}/categories?per_page=50&hide_empty=true&orderby=count&order=desc`);
     const cats = await res.json();
+    topicCount = cats.length;
+    document.getElementById('statTopics').textContent = topicCount;
+    list.innerHTML = '';
+    const all = document.createElement('div');
+    all.className = 'catcard';
+    all.innerHTML = '<div class="n">All Topics</div><div class="c">Browse everything</div>';
+    all.onclick = () => { currentCat = ''; setView('home'); loadPosts(true); };
+    list.appendChild(all);
     cats.forEach(c => {
-      const b = document.createElement('button');
-      b.className = 'chip'; b.dataset.cat = c.id; b.textContent = `${c.name} (${c.count})`;
-      b.onclick = () => selectCat(b);
-      chipsEl.appendChild(b);
+      const el = document.createElement('div');
+      el.className = 'catcard';
+      el.innerHTML = `<div class="n">${catName(c.name)}</div><div class="c">${c.count} articles</div>`;
+      el.onclick = () => { currentCat = String(c.id); setView('home'); loadPosts(true); window.scrollTo(0,0); };
+      list.appendChild(el);
     });
-  } catch(e){ /* categories are optional */ }
+  } catch(e){ cs.innerHTML = '<div class="error">Could not load topics.</div>'; }
 }
-function selectCat(btn){
-  chipsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  currentCat = btn.dataset.cat || '';
-  setView('home');
-  loadPosts(true);
-}
-chipsEl.querySelector('.chip').onclick = e => selectCat(e.currentTarget);
 
 function openPost(post){
   currentPost = post;
@@ -213,10 +301,12 @@ function openPost(post){
   document.getElementById('rMeta').innerHTML = `<span>${fmtDate(post.date)}</span>` + (post.cats && post.cats.length ? `<span>• ${post.cats.join(', ')}</span>` : '');
   const cover = document.getElementById('rCover');
   if (post.img){ cover.src = post.img; cover.style.display = ''; } else cover.style.display = 'none';
-  document.getElementById('rOrig').href = post.link;
+  const orig = document.getElementById('rOrig');
+  orig.href = post.link;
+  orig.onclick = e => { if (tg && tg.openLink){ e.preventDefault(); tg.openLink(post.link); } };
   const rc = document.getElementById('rContent');
-  if (post.raw && post.raw.content){ rc.innerHTML = clean(post.raw.content.rendered); }
-  else { rc.innerHTML = '<p>লোড হচ্ছে…</p>'; loadFull(post); }
+  if (post.raw && post.raw.content){ rc.innerHTML = teaser(post.raw.content.rendered); }
+  else { rc.innerHTML = '<p>Loading…</p>'; loadFull(post); }
   updateSaveBtn();
   document.getElementById('reader').classList.add('open');
   document.getElementById('reader').scrollTop = 0;
@@ -226,41 +316,62 @@ async function loadFull(post){
   try {
     const res = await fetch(`${API}/posts/${post.id}?_embed=1`);
     const full = mapPost(await res.json());
-    full.raw = (await Promise.resolve(full.raw));
     post.raw = full.raw; post.img = full.img; post.cats = full.cats;
     if (currentPost && currentPost.id === post.id) openPost(post);
-  } catch(e){ document.getElementById('rContent').innerHTML = '<p>পুরো আর্টিকেল লোড করা যায়নি। নিচের লিংক থেকে মূল ওয়েবসাইটে পড়ুন।</p>'; }
+  } catch(e){ document.getElementById('rContent').innerHTML = '<p>Could not load this article. Please use the button below to read it on the website.</p>'; }
 }
 function closeReader(){
   document.getElementById('reader').classList.remove('open');
   if (tg && tg.BackButton) tg.BackButton.hide();
-  if (view === 'saved') renderSaved();
 }
 function updateSaveBtn(){
-  document.getElementById('saveBtn').textContent = currentPost && isSaved(currentPost.id) ? '✅ সেভ করা আছে' : '🔖 সেভ';
+  document.getElementById('saveBtn').textContent = currentPost && isSaved(currentPost.id) ? '✅ Saved' : '🔖 Save';
 }
 document.getElementById('backBtn').onclick = closeReader;
 document.getElementById('saveBtn').onclick = () => { if (currentPost){ toggleSave(currentPost); updateSaveBtn(); } };
 
 function renderSaved(){
-  grid.innerHTML = ''; statusEl.innerHTML = ''; moreBtn.classList.add('hidden');
+  const g = document.getElementById('savedGrid');
+  const st = document.getElementById('savedStatus');
+  g.innerHTML = ''; st.innerHTML = '';
   const list = saved();
-  if (!list.length){ statusEl.innerHTML = '<div class="empty">এখনো কিছু সেভ করেননি।<br>আর্টিকেল খুলে 🔖 সেভ বোতামে চাপ দিন।</div>'; return; }
-  list.forEach(p => grid.appendChild(card({id: p.id, title: p.title, date: p.date, img: p.img, link: p.link, excerpt: '', cats: []})));
+  document.getElementById('statSaved').textContent = list.length;
+  if (!list.length){ st.innerHTML = '<div class="empty">You have not saved any articles yet.<br>Open an article and tap Save.</div>'; return; }
+  list.forEach(p => card({id: p.id, title: p.title, date: p.date, img: p.img, link: p.link, excerpt: '', cats: []}, g));
+}
+
+function renderProfile(){
+  const u = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+  const el = document.getElementById('profileCard');
+  document.getElementById('statSaved').textContent = saved().length;
+  if (u){
+    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Reader';
+    el.innerHTML = (u.photo_url ? `<img src="${u.photo_url}" alt="">` : `<div class="avatar-fallback">${name.charAt(0)}</div>`) +
+      `<h3></h3><p>${u.username ? '@' + u.username : ''}</p><p>Welcome to KBKh Science</p>`;
+    el.querySelector('h3').textContent = name;
+  } else {
+    el.innerHTML = '<div class="avatar-fallback">🔬</div><h3>KBKh Science Reader</h3><p>Open this app from Telegram to see your profile</p>';
+  }
 }
 
 function setView(v){
-  view = v;
-  ['navHome','navExplore','navSaved'].forEach(id => document.getElementById(id).classList.remove('active'));
-  document.getElementById(v === 'home' ? 'navHome' : v === 'explore' ? 'navExplore' : 'navSaved').classList.add('active');
-  chipsEl.style.display = v === 'saved' ? 'none' : '';
+  ['home','explore','saved','profile'].forEach(k => {
+    document.getElementById('view-' + k).classList.toggle('active', k === v);
+    document.getElementById('nav-' + k).classList.toggle('active', k === v);
+  });
+  document.getElementById('searchBox').style.display = v === 'home' ? '' : 'none';
+  if (v === 'saved') renderSaved();
+  if (v === 'profile') renderProfile();
+  window.scrollTo(0, 0);
 }
-document.getElementById('navHome').onclick = () => { setView('home'); currentSearch = ''; document.getElementById('q').value = ''; loadPosts(true); };
-document.getElementById('navExplore').onclick = () => { setView('explore'); chipsEl.scrollIntoView({behavior:'smooth'}); };
-document.getElementById('navSaved').onclick = () => { setView('saved'); renderSaved(); };
+document.getElementById('nav-home').onclick = () => setView('home');
+document.getElementById('nav-explore').onclick = () => setView('explore');
+document.getElementById('nav-saved').onclick = () => setView('saved');
+document.getElementById('nav-profile').onclick = () => setView('profile');
 
 function doSearch(){
   currentSearch = document.getElementById('q').value.trim();
+  currentCat = '';
   setView('home'); loadPosts(true);
 }
 document.getElementById('searchBtn').onclick = doSearch;
