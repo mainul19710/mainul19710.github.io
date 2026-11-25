@@ -18,8 +18,8 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding-bottom:84px}
   header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 10px;border-bottom:1px solid rgba(148,163,184,.15)}
-  header h1{font-size:20px}
-  header p{color:var(--hint);font-size:13px;margin-top:2px}
+  header .logo{height:42px;width:auto;max-width:78vw;display:block}
+  header p{color:var(--hint);font-size:13px;margin-top:6px}
   .search{margin-top:10px;display:flex;gap:8px}
   .search input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:var(--surface);color:var(--text);font-size:15px}
   .search button{padding:10px 14px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-text);font-size:15px;cursor:pointer}
@@ -67,7 +67,10 @@
   #reader.open{display:block}
   #reader .bar{position:sticky;top:0;background:var(--bg);display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(148,163,184,.15)}
   #reader .bar button{padding:8px 13px;border:0;border-radius:9px;background:var(--surface);color:var(--text);cursor:pointer;font-size:14px}
-  #reader .bar .save{margin-left:auto;background:var(--accent);color:var(--accent-text)}
+  #reader .bar .save{margin-left:auto;background:var(--accent);color:var(--accent-text);display:inline-flex;align-items:center;gap:7px;font-weight:600}
+  #reader .bar .save svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .savedflag{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600}
+  .savedflag svg{width:12px;height:12px;stroke:currentColor;fill:currentColor;stroke-width:1.5}
   #reader article{padding:16px;max-width:760px;margin:0 auto}
   #reader h2{font-size:22px;line-height:1.4}
   #reader .cover{width:100%;border-radius:12px;margin:14px 0}
@@ -86,7 +89,7 @@
 </head>
 <body>
 <header>
-  <h1>🔬 KBKh Science</h1>
+  <img class="logo" id="siteLogo" src="https://kbkhscience.com.bd/wp-content/uploads/2026/04/kbkh-science-blacak.png" alt="KBKh Science">
   <p>Discover the latest science stories</p>
   <div class="search" id="searchBox">
     <input id="q" type="search" placeholder="Search articles… e.g. Space" enterkeyhint="search">
@@ -120,9 +123,9 @@
       <div class="stat"><div class="v" id="statSaved">0</div><div class="k">Saved Articles</div></div>
       <div class="stat"><div class="v" id="statTopics">–</div><div class="k">Topics</div></div>
     </div>
-    <a class="linkrow" href="https://kbkhscience.com.bd" target="_blank" rel="noopener">🌐 KBKh Science Website<small>kbkhscience.com.bd</small></a>
-    <a class="linkrow" href="https://t.me/kbkhscienceweb_bot" target="_blank" rel="noopener">🤖 KBKh Science Bot<small>@kbkhscienceweb_bot</small></a>
-    <a class="linkrow" href="https://www.facebook.com/groups/777602136864885" target="_blank" rel="noopener">👥 KBKh Facebook Group<small>কি...বিজ্ঞান খুঁজছেন?</small></a>
+    <a class="linkrow" href="https://kbkhscience.com.bd" target="_blank" rel="noopener">KBKh Science Website<small>kbkhscience.com.bd</small></a>
+    <a class="linkrow" href="https://t.me/kbkhscienceweb_bot" target="_blank" rel="noopener">KBKh Science Bot<small>@kbkhscienceweb_bot</small></a>
+    <a class="linkrow" href="https://www.facebook.com/groups/777602136864885" target="_blank" rel="noopener">KBKh Facebook Group<small>কি...বিজ্ঞান খুঁজছেন?</small></a>
   </section>
 </main>
 
@@ -148,7 +151,7 @@
 <section id="reader">
   <div class="bar">
     <button id="backBtn">← Back</button>
-    <button class="save" id="saveBtn">🔖 Save</button>
+    <button class="save" id="saveBtn"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>Save</span></button>
   </div>
   <article>
     <h2 id="rTitle"></h2>
@@ -166,6 +169,18 @@
 const API = 'https://kbkhscience.com.bd/wp-json/wp/v2';
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
+
+/* Original KBKh Science logo from the website: white version on dark
+   themes, black version on light themes. */
+const LOGO_DARK = 'https://kbkhscience.com.bd/wp-content/uploads/2026/04/KBKh-Science-White.png';
+const LOGO_LIGHT = 'https://kbkhscience.com.bd/wp-content/uploads/2026/04/kbkh-science-blacak.png';
+function applyLogo(){
+  const scheme = tg && tg.colorScheme ? tg.colorScheme
+    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.getElementById('siteLogo').src = scheme === 'dark' ? LOGO_DARK : LOGO_LIGHT;
+}
+applyLogo();
+if (tg && tg.onEvent) tg.onEvent('themeChanged', applyLogo);
 
 /* Bengali category names from the website, shown in English in the app */
 const CAT_EN = {
@@ -237,7 +252,7 @@ function card(post, targetGrid){
   el.innerHTML = (post.img ? `<img loading="lazy" src="${post.img}" alt="">` : '') +
     `<div class="body"><h3></h3><div class="meta"><span>${fmtDate(post.date)}</span>` +
     (post.cats && post.cats.length ? `<span>• ${post.cats.join(', ')}</span>` : '') +
-    (isSaved(post.id) ? '<span>🔖 Saved</span>' : '') +
+    (isSaved(post.id) ? '<span class="savedflag"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>Saved</span>' : '') +
     `</div><p class="excerpt"></p></div>`;
   el.querySelector('h3').textContent = post.title;
   el.querySelector('.excerpt').textContent = post.excerpt || '';
@@ -325,7 +340,10 @@ function closeReader(){
   if (tg && tg.BackButton) tg.BackButton.hide();
 }
 function updateSaveBtn(){
-  document.getElementById('saveBtn').textContent = currentPost && isSaved(currentPost.id) ? '✅ Saved' : '🔖 Save';
+  const btn = document.getElementById('saveBtn');
+  const on = currentPost && isSaved(currentPost.id);
+  btn.querySelector('span').textContent = on ? 'Saved' : 'Save';
+  btn.style.opacity = on ? '.85' : '1';
 }
 document.getElementById('backBtn').onclick = closeReader;
 document.getElementById('saveBtn').onclick = () => { if (currentPost){ toggleSave(currentPost); updateSaveBtn(); } };
@@ -350,7 +368,7 @@ function renderProfile(){
       `<h3></h3><p>${u.username ? '@' + u.username : ''}</p><p>Welcome to KBKh Science</p>`;
     el.querySelector('h3').textContent = name;
   } else {
-    el.innerHTML = '<div class="avatar-fallback">🔬</div><h3>KBKh Science Reader</h3><p>Open this app from Telegram to see your profile</p>';
+    el.innerHTML = '<img src="https://kbkhscience.com.bd/wp-content/uploads/2026/04/kbkh-Science-logo-dark-blue.png" alt="KBKh Science"><h3>KBKh Science Reader</h3><p>Open this app from Telegram to see your profile</p>';
   }
 }
 
