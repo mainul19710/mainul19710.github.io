@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KBKh Science — Telegram Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg: var(--tg-theme-bg-color, #0f172a);
+    --surface: var(--tg-theme-secondary-bg-color, #1e293b);
+    --text: var(--tg-theme-text-color, #f1f5f9);
+    --hint: var(--tg-theme-hint-color, #94a3b8);
+    --accent: var(--tg-theme-button-color, #0ea5e9);
+    --accent-text: var(--tg-theme-button-text-color, #ffffff);
+    --link: var(--tg-theme-link-color, #38bdf8);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Hind Siliguri',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px}
+  header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid rgba(148,163,184,.15)}
+  header h1{font-size:20px}
+  header p{color:var(--hint);font-size:13px;margin-top:2px}
+  .search{margin-top:10px;display:flex;gap:8px}
+  .search input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:var(--surface);color:var(--text);font-size:15px}
+  .search button{padding:10px 14px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-text);font-size:15px;cursor:pointer}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;padding:7px 13px;border-radius:999px;background:var(--surface);color:var(--text);border:1px solid rgba(148,163,184,.25);font-size:14px;cursor:pointer}
+  .chip.active{background:var(--accent);color:var(--accent-text);border-color:transparent}
+  main{padding:12px 16px}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--surface);border-radius:14px;overflow:hidden;cursor:pointer}
+  .card img{width:100%;height:170px;object-fit:cover;display:block;background:#334155}
+  .card .body{padding:12px}
+  .card h3{font-size:16px;line-height:1.45}
+  .meta{color:var(--hint);font-size:12px;margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+  .excerpt{color:var(--hint);font-size:13px;line-height:1.55;margin-top:6px}
+  .loadmore{display:block;margin:18px auto;padding:11px 22px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-text);font-size:15px;cursor:pointer}
+  .empty,.error{text-align:center;color:var(--hint);padding:36px 10px;line-height:1.6}
+  .error button{margin-top:10px;padding:9px 18px;border:0;border-radius:9px;background:var(--accent);color:var(--accent-text);cursor:pointer}
+  .skeleton{height:250px;border-radius:14px;background:linear-gradient(100deg,var(--surface) 40%,rgba(148,163,184,.25) 50%,var(--surface) 60%);background-size:200% 100%;animation:sh 1.2s infinite}
+  @keyframes sh{to{background-position:-200% 0}}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--surface);border-top:1px solid rgba(148,163,184,.2);padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:0;color:var(--hint);padding:10px 0 8px;font-size:13px;cursor:pointer}
+  nav button span{display:block;font-size:20px;margin-bottom:2px}
+  nav button.active{color:var(--accent)}
+  /* Reader */
+  #reader{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;display:none}
+  #reader.open{display:block}
+  #reader .bar{position:sticky;top:0;background:var(--bg);display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(148,163,184,.15)}
+  #reader .bar button{padding:8px 13px;border:0;border-radius:9px;background:var(--surface);color:var(--text);cursor:pointer;font-size:14px}
+  #reader .bar .save{margin-left:auto;background:var(--accent);color:var(--accent-text)}
+  #reader article{padding:16px;max-width:760px;margin:0 auto}
+  #reader h2{font-size:22px;line-height:1.4}
+  #reader .cover{width:100%;border-radius:12px;margin:14px 0}
+  #reader .content{font-size:16px;line-height:1.8;word-wrap:break-word}
+  #reader .content img,#reader .content iframe{max-width:100%;height:auto;border-radius:10px}
+  #reader .content p{margin:0 0 14px}
+  #reader .content h2,#reader .content h3{margin:18px 0 8px;line-height:1.4}
+  #reader .content a{color:var(--link)}
+  .orig{display:inline-block;margin:18px 0 30px;color:var(--link)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔬 KBKh Science</h1>
+  <p>কি...বিজ্ঞান খুঁজছেন? — সর্বশেষ বিজ্ঞান আর্টিকেল পড়ুন</p>
+  <div class="search">
+    <input id="q" type="search" placeholder="আর্টিকেল খুঁজুন… যেমন: মহাকাশ" enterkeyhint="search">
+    <button id="searchBtn">খুঁজুন</button>
+  </div>
+</header>
+
+<div class="chips" id="chips"><button class="chip active" data-cat="">সব</button></div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div id="status"></div>
+  <button class="loadmore hidden" id="moreBtn">আরও দেখুন</button>
+</main>
+
+<nav>
+  <button id="navHome" class="active"><span>🏠</span>হোম</button>
+  <button id="navExplore"><span>🧭</span>এক্সপ্লোর</button>
+  <button id="navSaved"><span>🔖</span>সেভ করা</button>
+</nav>
+
+<section id="reader">
+  <div class="bar">
+    <button id="backBtn">← ফিরুন</button>
+    <button class="save" id="saveBtn">🔖 সেভ</button>
+  </div>
+  <article>
+    <h2 id="rTitle"></h2>
+    <div class="meta" id="rMeta"></div>
+    <img class="cover" id="rCover" alt="">
+    <div class="content" id="rContent"></div>
+    <a class="orig" id="rOrig" target="_blank" rel="noopener">🌐 মূল ওয়েবসাইটে পড়ুন</a>
+  </article>
+</section>
+
+<script>
+const API = 'https://kbkhscience.com.bd/wp-json/wp/v2';
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+const grid = document.getElementById('grid');
+const statusEl = document.getElementById('status');
+const moreBtn = document.getElementById('moreBtn');
+const chipsEl = document.getElementById('chips');
+
+let page = 1, totalPages = 1, currentCat = '', currentSearch = '', view = 'home';
+let currentPost = null;
+
+const saved = () => { try { return JSON.parse(localStorage.getItem('kbkh_saved') || '[]'); } catch(e){ return []; } };
+const isSaved = id => saved().some(p => p.id === id);
+function toggleSave(post){
+  let list = saved();
+  if (isSaved(post.id)) list = list.filter(p => p.id !== post.id);
+  else list.unshift({id: post.id, title: post.title, date: post.date, img: post.img, link: post.link});
+  localStorage.setItem('kbkh_saved', JSON.stringify(list));
+}
+
+function strip(html){ const d = document.createElement('div'); d.innerHTML = html || ''; return d.textContent.trim(); }
+function clean(html){
+  const d = document.createElement('div'); d.innerHTML = html || '';
+  d.querySelectorAll('script,style,iframe[src*="ads"],ins').forEach(el => el.remove());
+  return d.innerHTML;
+}
+function fmtDate(iso){
+  try { return new Date(iso).toLocaleDateString('bn-BD', {day:'numeric', month:'long', year:'numeric'}); } catch(e){ return ''; }
+}
+function mapPost(p){
+  const emb = p._embedded || {};
+  const fm = (emb['wp:featuredmedia'] || [])[0];
+  const terms = ((emb['wp:term'] || [])[0] || []).map(t => t.name);
+  return {
+    id: p.id, raw: p,
+    title: strip(p.title && p.title.rendered),
+    excerpt: strip(p.excerpt && p.excerpt.rendered).slice(0, 140),
+    date: p.date, link: p.link,
+    img: fm && fm.source_url ? fm.source_url : '',
+    cats: terms
+  };
+}
+
+function card(post){
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = (post.img ? `<img loading="lazy" src="${post.img}" alt="">` : '') +
+    `<div class="body"><h3></h3><div class="meta"><span>${fmtDate(post.date)}</span>` +
+    (post.cats && post.cats.length ? `<span>• ${post.cats.join(', ')}</span>` : '') +
+    (isSaved(post.id) ? '<span>🔖 সেভ করা</span>' : '') +
+    `</div><p class="excerpt"></p></div>`;
+  el.querySelector('h3').textContent = post.title;
+  el.querySelector('.excerpt').textContent = post.excerpt || '';
+  el.onclick = () => openPost(post);
+  return el;
+}
+
+function skeletons(n){
+  grid.innerHTML = '';
+  for (let i = 0; i < (n || 4); i++){ const s = document.createElement('div'); s.className = 'skeleton'; grid.appendChild(s); }
+}
+
+async function loadPosts(reset){
+  if (reset){ page = 1; skeletons(4); statusEl.innerHTML = ''; }
+  moreBtn.classList.add('hidden');
+  try {
+    const params = new URLSearchParams({_embed: '1', per_page: '12', page: String(page)});
+    if (currentCat) params.set('categories', currentCat);
+    if (currentSearch) params.set('search', currentSearch);
+    const res = await fetch(`${API}/posts?${params}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1', 10);
+    const posts = (await res.json()).map(mapPost);
+    if (reset) grid.innerHTML = '';
+    if (!posts.length && reset){ statusEl.innerHTML = '<div class="empty">কোনো আর্টিকেল পাওয়া যায়নি।</div>'; return; }
+    posts.forEach(p => grid.appendChild(card(p)));
+    if (page < totalPages) moreBtn.classList.remove('hidden');
+  } catch(e){
+    if (reset) grid.innerHTML = '';
+    statusEl.innerHTML = '<div class="error">আর্টিকেল লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।<br><button onclick="loadPosts(true)">আবার চেষ্টা</button></div>';
+  }
+}
+
+async function loadCategories(){
+  try {
+    const res = await fetch(`${API}/categories?per_page=50&hide_empty=true&orderby=count&order=desc`);
+    const cats = await res.json();
+    cats.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.dataset.cat = c.id; b.textContent = `${c.name} (${c.count})`;
+      b.onclick = () => selectCat(b);
+      chipsEl.appendChild(b);
+    });
+  } catch(e){ /* categories are optional */ }
+}
+function selectCat(btn){
+  chipsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat || '';
+  setView('home');
+  loadPosts(true);
+}
+chipsEl.querySelector('.chip').onclick = e => selectCat(e.currentTarget);
+
+function openPost(post){
+  currentPost = post;
+  document.getElementById('rTitle').textContent = post.title;
+  document.getElementById('rMeta').innerHTML = `<span>${fmtDate(post.date)}</span>` + (post.cats && post.cats.length ? `<span>• ${post.cats.join(', ')}</span>` : '');
+  const cover = document.getElementById('rCover');
+  if (post.img){ cover.src = post.img; cover.style.display = ''; } else cover.style.display = 'none';
+  document.getElementById('rOrig').href = post.link;
+  const rc = document.getElementById('rContent');
+  if (post.raw && post.raw.content){ rc.innerHTML = clean(post.raw.content.rendered); }
+  else { rc.innerHTML = '<p>লোড হচ্ছে…</p>'; loadFull(post); }
+  updateSaveBtn();
+  document.getElementById('reader').classList.add('open');
+  document.getElementById('reader').scrollTop = 0;
+  if (tg && tg.BackButton){ tg.BackButton.show(); tg.BackButton.onClick(closeReader); }
+}
+async function loadFull(post){
+  try {
+    const res = await fetch(`${API}/posts/${post.id}?_embed=1`);
+    const full = mapPost(await res.json());
+    full.raw = (await Promise.resolve(full.raw));
+    post.raw = full.raw; post.img = full.img; post.cats = full.cats;
+    if (currentPost && currentPost.id === post.id) openPost(post);
+  } catch(e){ document.getElementById('rContent').innerHTML = '<p>পুরো আর্টিকেল লোড করা যায়নি। নিচের লিংক থেকে মূল ওয়েবসাইটে পড়ুন।</p>'; }
+}
+function closeReader(){
+  document.getElementById('reader').classList.remove('open');
+  if (tg && tg.BackButton) tg.BackButton.hide();
+  if (view === 'saved') renderSaved();
+}
+function updateSaveBtn(){
+  document.getElementById('saveBtn').textContent = currentPost && isSaved(currentPost.id) ? '✅ সেভ করা আছে' : '🔖 সেভ';
+}
+document.getElementById('backBtn').onclick = closeReader;
+document.getElementById('saveBtn').onclick = () => { if (currentPost){ toggleSave(currentPost); updateSaveBtn(); } };
+
+function renderSaved(){
+  grid.innerHTML = ''; statusEl.innerHTML = ''; moreBtn.classList.add('hidden');
+  const list = saved();
+  if (!list.length){ statusEl.innerHTML = '<div class="empty">এখনো কিছু সেভ করেননি।<br>আর্টিকেল খুলে 🔖 সেভ বোতামে চাপ দিন।</div>'; return; }
+  list.forEach(p => grid.appendChild(card({id: p.id, title: p.title, date: p.date, img: p.img, link: p.link, excerpt: '', cats: []})));
+}
+
+function setView(v){
+  view = v;
+  ['navHome','navExplore','navSaved'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(v === 'home' ? 'navHome' : v === 'explore' ? 'navExplore' : 'navSaved').classList.add('active');
+  chipsEl.style.display = v === 'saved' ? 'none' : '';
+}
+document.getElementById('navHome').onclick = () => { setView('home'); currentSearch = ''; document.getElementById('q').value = ''; loadPosts(true); };
+document.getElementById('navExplore').onclick = () => { setView('explore'); chipsEl.scrollIntoView({behavior:'smooth'}); };
+document.getElementById('navSaved').onclick = () => { setView('saved'); renderSaved(); };
+
+function doSearch(){
+  currentSearch = document.getElementById('q').value.trim();
+  setView('home'); loadPosts(true);
+}
+document.getElementById('searchBtn').onclick = doSearch;
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+moreBtn.onclick = () => { page++; loadPosts(false); };
+
+loadCategories();
+loadPosts(true);
+</script>
+</body>
+</html>
